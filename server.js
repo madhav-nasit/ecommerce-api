@@ -10,6 +10,7 @@ const cors = require('cors');
 const UserRoutes = require('./app/routes/userRoutes');
 const ProductRoutes = require('./app/routes/productRoutes');
 const CartRoutes = require('./app/routes/cartRoutes');
+const OrderRoutes = require('./app/routes/orderRoutes');
 const secret = process.env.SECRET_KEY;
 
 // Initialize Express app
@@ -64,6 +65,7 @@ app.use(async (req, res, next) => {
 app.use('/api/auth', UserRoutes);
 app.use('/api/product', ProductRoutes);
 app.use('/api/cart', CartRoutes);
+app.use('/api/order', OrderRoutes);
 
 // 404 Error handling
 app.use((req, res) => {
