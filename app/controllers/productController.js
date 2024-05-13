@@ -33,8 +33,6 @@ const getProducts = async (req, res) => {
     if (page && limit) {
       currentPage = parseInt(page);
       totalPages = Math.ceil(totalProducts / limit);
-      console.log('currentPage', currentPage);
-      console.log('totalPages', totalPages);
       if (totalPages != 0 && currentPage > totalPages) {
         throw new Error('Page number is out of bounds.');
       }
@@ -60,7 +58,7 @@ const getProducts = async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching products:', error);
-    res.status(500).json({ error: error.message || 'Internal Server Error' });
+    res.status(400).json({ error: error.message || 'Internal Server Error' });
   }
 };
 
