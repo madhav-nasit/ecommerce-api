@@ -35,32 +35,6 @@ app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-// Middleware for JWT verification
-app.use(async (req, res, next) => {
-  try {
-    if (
-      req.headers &&
-      req.headers.authorization &&
-      req.headers.authorization.split(' ')[0] === 'Bearer'
-    ) {
-      const user = await jwt.verify(req.headers.authorization.split(' ')[1], secret);
-      if (!!user) {
-        user.iat = undefined;
-        req.user = user;
-      } else {
-        req.user = undefined;
-      }
-    } else {
-      req.user = undefined;
-    }
-    next();
-  } catch (err) {
-    console.error('JWT verification failed:', err);
-    req.user = undefined;
-    next(err); // Pass error to error handling middleware
-  }
-});
-
 // Routes
 app.use('/api/auth', UserRoutes);
 app.use('/api/product', ProductRoutes);
