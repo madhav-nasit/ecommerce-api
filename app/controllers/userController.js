@@ -65,18 +65,18 @@ const signIn = async (req, res) => {
 /**
  * Middleware to check if user is logged in.
  */
-const loginRequired = (req, res, next) => {
+const loginRequired = async (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
-  if (token) {
-    jwt.verify(token, secret, (err, decoded) => {
-      if (err) {
-        return res.status(401).json({ message: 'Unauthorized user!!' });
-      } else {
-        req.user = decoded;
-        next();
-      }
-    });
-  } else {
+
+  if (!token) {
+    throw new Error('Unauthorized user!!');
+  }
+
+  try {
+    const decoded = await jwt.verify(token, secret);
+    req.user = decoded;
+    next();
+  } catch (err) {
     return res.status(401).json({ message: 'Unauthorized user!!' });
   }
 };
@@ -85,7 +85,16 @@ const loginRequired = (req, res, next) => {
  * Fetches user profile.
  */
 const profile = async (req, res) => {
-  return res.send(req.user);
+  try {
+    const currentUserID = req.user._id;
+    const user = await User.findById(currentUserID).exec();
+    user.password = undefined;
+    return res.send(user);
+  } catch (err) {
+    return res.status(500).send({
+      message: 'Error occurred while getting user.',
+    });
+  }
 };
 
 module.exports = { signUp, signIn, loginRequired, profile };
