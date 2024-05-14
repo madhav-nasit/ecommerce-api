@@ -1,6 +1,7 @@
 'use strict';
 
 // Module dependencies
+const mongoose = require('mongoose');
 const Order = require('../models/orderModel');
 const Cart = require('../models/cartModel');
 
@@ -122,4 +123,180 @@ const updateOrderStatus = async (req, res) => {
   }
 };
 
-module.exports = { getOrder, placeOrder, updateOrderStatus };
+/**
+ * Fetches the top 10 bestseller products based on the quantity sold.
+ */
+const getBestsellerProducts = async (req, res) => {
+  const { limit = 10 } = req.params;
+  try {
+    const bestsellerProducts = await Order.aggregate([
+      {
+        $unwind: {
+          path: '$products',
+        },
+      },
+      {
+        $group: {
+          _id: '$products.product',
+          orderCount: {
+            $sum: '$products.quantity',
+          },
+        },
+      },
+      {
+        $sort: {
+          orderCount: -1,
+        },
+      },
+      {
+        $limit: limit,
+      },
+      {
+        $lookup: {
+          from: 'products',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'product',
+        },
+      },
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'product.category',
+          foreignField: '_id',
+          as: 'category',
+        },
+      },
+      {
+        $addFields: {
+          category: {
+            $arrayElemAt: ['$category', 0],
+          },
+        },
+      },
+      {
+        $addFields: {
+          'product.category': '$category.name',
+        },
+      },
+      {
+        $addFields: {
+          product: {
+            $arrayElemAt: ['$product', 0],
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          orderCount: 1,
+          product: 1,
+        },
+      },
+    ]);
+
+    res.json(bestsellerProducts);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+/**
+ * Fetches the top 10 products frequently bought together with the specified product.
+ */
+const getProductsBoughtTogether = async (req, res) => {
+  try {
+    const { productId, limit = 10 } = req.params;
+    const objectId = new mongoose.Types.ObjectId(productId);
+    const boughtTogether = await Order.aggregate([
+      {
+        $match: {
+          'products.product': objectId,
+        },
+      },
+      {
+        $unwind: {
+          path: '$products',
+        },
+      },
+      {
+        $group: {
+          _id: '$products.product',
+          totalBoughtTogether: {
+            $sum: '$products.quantity',
+          },
+        },
+      },
+      {
+        $match: {
+          _id: {
+            $ne: objectId,
+          },
+        },
+      },
+      {
+        $sort: {
+          totalBoughtTogether: -1,
+        },
+      },
+      {
+        $limit: limit,
+      },
+      {
+        $lookup: {
+          from: 'products',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'product',
+        },
+      },
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'product.category',
+          foreignField: '_id',
+          as: 'category',
+        },
+      },
+      {
+        $addFields: {
+          category: {
+            $arrayElemAt: ['$category', 0],
+          },
+        },
+      },
+      {
+        $addFields: {
+          'product.category': '$category.name',
+        },
+      },
+      {
+        $addFields: {
+          product: {
+            $arrayElemAt: ['$product', 0],
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          totalBoughtTogether: 1,
+          product: 1,
+        },
+      },
+    ]);
+
+    res.json(boughtTogether);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+module.exports = {
+  getOrder,
+  placeOrder,
+  updateOrderStatus,
+  getBestsellerProducts,
+  getProductsBoughtTogether,
+};
