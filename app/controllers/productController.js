@@ -63,6 +63,35 @@ const getProducts = async (req, res) => {
 };
 
 /**
+ * Retrieves a single product based on the provided product ID.
+ * @returns {Object} Response with the product details or an error message.
+ */
+const getProductById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Find the product by ID and populate its category
+    const product = await Product.findById(id).populate('category');
+
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found.' });
+    }
+
+    // Format the product response to include category name
+    const formattedProduct = {
+      ...product.toJSON(),
+      category: product?.category.name,
+    };
+
+    // Return the product
+    res.json(formattedProduct);
+  } catch (error) {
+    console.error('Error fetching product:', error);
+    res.status(400).json({ error: error.message || 'Internal Server Error' });
+  }
+};
+
+/**
  * Adds a new product.
  * @returns {Object} Response with success message and added product details.
  */
@@ -192,4 +221,4 @@ const deleteProduct = async (req, res) => {
   }
 };
 
-module.exports = { getProducts, addProduct, editProduct, deleteProduct };
+module.exports = { getProducts, getProductById, addProduct, editProduct, deleteProduct };

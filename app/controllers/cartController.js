@@ -110,7 +110,7 @@ const addToCart = async (req, res) => {
 const deleteCart = async (req, res) => {
   try {
     const currentUserID = req.user._id;
-    const { productId, cartId } = req.body;
+    const { productId, cartId } = req.query;
 
     if (!productId && !cartId) {
       throw new Error('Please provide either productId or cartId');
