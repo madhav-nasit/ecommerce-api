@@ -14,5 +14,7 @@ router.post('/sign-in', userController.signIn);
 // Route for user profile (requires login)
 router.get('/profile', userController.loginRequired, userController.profile);
 
+router.get('/users', userController.loginRequired, userController.getUsers);
+
 // Exporting router to use in the main application
 module.exports = router;

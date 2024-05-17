@@ -97,4 +97,18 @@ const profile = async (req, res) => {
   }
 };
 
-module.exports = { signUp, signIn, loginRequired, profile };
+const getUsers = async (req, res) => {
+  try {
+    const currentUserID = req.user._id;
+    const users = await User.find({ _id: { $ne: currentUserID } })
+      .select('firstName lastName _id')
+      .exec();
+    return res.send(users);
+  } catch (err) {
+    return res.status(500).send({
+      message: 'Error occurred while getting users.',
+    });
+  }
+};
+
+module.exports = { signUp, signIn, loginRequired, profile, getUsers };
