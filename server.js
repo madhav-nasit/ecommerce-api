@@ -3,15 +3,16 @@ require('dotenv').config();
 
 // Importing required modules
 const express = require('express');
+const socketIo = require('socket.io');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
-const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const UserRoutes = require('./app/routes/userRoutes');
 const ProductRoutes = require('./app/routes/productRoutes');
 const CartRoutes = require('./app/routes/cartRoutes');
 const OrderRoutes = require('./app/routes/orderRoutes');
-const secret = process.env.SECRET_KEY;
+const ChatRoutes = require('./app/routes/chatRoutes');
+const socketController = require('./app/controllers/socketController');
 
 // Initialize Express app
 const app = express();
@@ -40,6 +41,7 @@ app.use('/api/auth', UserRoutes);
 app.use('/api/product', ProductRoutes);
 app.use('/api/cart', CartRoutes);
 app.use('/api/order', OrderRoutes);
+app.use('/api/chat', ChatRoutes);
 
 // 404 Error handling
 app.use((req, res) => {
@@ -54,6 +56,19 @@ app.use((err, req, res, next) => {
 
 // Start the server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server is listening on port ${PORT}`);
+const server = app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
+
+// const io = socketIo(server);
+const io = socketIo(server, {
+  cors: {
+    origin: '*', // Allow all origins, you can restrict it to specific origins if needed
+    methods: ['GET', 'POST'],
+    // allowedHeaders: ['my-custom-header'],
+    credentials: true,
+  },
+});
+
+// Load socket controller
+socketController(io);
