@@ -28,6 +28,9 @@ router.delete('/categories/:id', categoryController.deleteCategoryById);
 // Get products with optional filtering and pagination
 router.get('/', productController.getProducts);
 
+// Get product details by id
+router.get('/:id', productController.getProductById);
+
 // Add a new product
 router.post('/', productUpload, productController.addProduct);
 
