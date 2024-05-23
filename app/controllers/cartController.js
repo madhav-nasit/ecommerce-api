@@ -19,7 +19,7 @@ const addToCart = async (req, res, next) => {
     const result = await cartRepository.addProductToCart(currentUserID, productId, quantity);
     res.status(200).json(result);
   } catch (error) {
-    next('Error occurred while adding product to cart.');
+    next(error.message ?? 'Error occurred while adding product to cart.');
   }
 };
 

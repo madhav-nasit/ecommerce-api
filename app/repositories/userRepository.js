@@ -44,9 +44,22 @@ const findAllUsersExcept = async (currentUserID) => {
     .exec();
 };
 
+/**
+ * Find users who are not in the given array of user IDs.
+ * @param {Object} currentUserID - The ID of the current user.
+ * @param {Array} excludeUserIDs - Array of user IDs to exclude.
+ * @returns {Promise<Array>} - A promise that resolves to an array of users.
+ */
+const findNewUsers = async (currentUserID, excludeUserIDs) => {
+  return await User.find({ _id: { $ne: currentUserID, $nin: excludeUserIDs } })
+    .select('firstName lastName _id')
+    .exec();
+};
+
 module.exports = {
   createUser,
   findUserByEmail,
   findUserById,
   findAllUsersExcept,
+  findNewUsers,
 };
