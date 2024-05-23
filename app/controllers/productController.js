@@ -1,13 +1,15 @@
 'use strict';
 
 const Product = require('../models/productModel');
-const Category = require('../models/categoryModel');
+const ProductRepository = require('../repositories/productRepository');
+const CategoryRepository = require('../repositories/categoryRepository');
+const { paginate } = require('../utils/helper');
 
 /**
  * Retrieves a list of products based on optional query parameters.
  * @returns {Object} Response with list of products, pagination details, and total count.
  */
-const getProducts = async (req, res) => {
+const getProducts = async (req, res, next) => {
   try {
     // Extract query parameters
     const { category, page, limit } = req.query;
@@ -15,33 +17,20 @@ const getProducts = async (req, res) => {
 
     // If category is provided, filter by category
     if (category) {
-      const categoryObj = await Category.findOne({ name: category });
+      const categoryObj = await CategoryRepository.findCategoryByName(category);
       if (!categoryObj) {
-        throw new Error('No category found.');
+        next('No category found.');
       }
       query.category = categoryObj._id;
     }
 
-    // Count total products
-    const totalProducts = await Product.countDocuments(query);
-
-    let currentPage = 1;
-    let totalPages = 1;
-    let productsQuery = Product.find(query).populate('category');
-
-    // If page and limit are provided, apply pagination
-    if (page && limit) {
-      currentPage = parseInt(page);
-      totalPages = Math.ceil(totalProducts / limit);
-      if (totalPages != 0 && currentPage > totalPages) {
-        throw new Error('Page number is out of bounds.');
-      }
-      const skip = (currentPage - 1) * limit;
-      productsQuery = productsQuery.skip(skip).limit(parseInt(limit));
-    }
-
-    // Query products with filters and pagination
-    const products = await productsQuery.exec();
+    // Paginate the products
+    const {
+      items: products,
+      totalItems,
+      currentPage,
+      totalPages,
+    } = await paginate(Product, query, page, limit, 'category');
 
     // Format category as "category": "smartphones"
     const formattedProducts = products.map((product) => ({
@@ -49,16 +38,14 @@ const getProducts = async (req, res) => {
       category: product?.category.name,
     }));
 
-    // Return products
-    res.json({
+    res.status(200).json({
       products: formattedProducts,
-      count: totalProducts,
+      count: totalItems,
       page: currentPage,
       total: totalPages,
     });
   } catch (error) {
-    console.error('Error fetching products:', error);
-    res.status(400).json({ error: error.message || 'Internal Server Error' });
+    next('Error while getting products.');
   }
 };
 
@@ -66,15 +53,15 @@ const getProducts = async (req, res) => {
  * Retrieves a single product based on the provided product ID.
  * @returns {Object} Response with the product details or an error message.
  */
-const getProductById = async (req, res) => {
+const getProductById = async (req, res, next) => {
   try {
     const { id } = req.params;
 
     // Find the product by ID and populate its category
-    const product = await Product.findById(id).populate('category');
+    const product = await ProductRepository.findProductById(id);
 
     if (!product) {
-      return res.status(404).json({ error: 'Product not found.' });
+      next('Product not found.');
     }
 
     // Format the product response to include category name
@@ -84,10 +71,9 @@ const getProductById = async (req, res) => {
     };
 
     // Return the product
-    res.json(formattedProduct);
+    res.status(200).json(formattedProduct);
   } catch (error) {
-    console.error('Error fetching product:', error);
-    res.status(400).json({ error: error.message || 'Internal Server Error' });
+    next('Error while getting product details.');
   }
 };
 
@@ -95,22 +81,22 @@ const getProductById = async (req, res) => {
  * Adds a new product.
  * @returns {Object} Response with success message and added product details.
  */
-const addProduct = async (req, res) => {
+const addProduct = async (req, res, next) => {
   try {
     const { title, description, price, stock, discountPercentage, rating, category } = req.body;
     const thumbnail = req.files['thumbnail'];
     const images = req.files['images'];
 
     if (!title || !description || !price || !stock || !category) {
-      throw new Error('Missing required fields.');
+      next('Missing required fields.');
     }
 
-    const categoryObj = await Category.findById(category);
+    const categoryObj = await CategoryRepository.findCategoryById(category);
     if (!categoryObj) {
-      throw new Error('Category not found');
+      next('Category not found');
     }
 
-    const product = new Product({
+    const productData = {
       title,
       description,
       price,
@@ -119,29 +105,22 @@ const addProduct = async (req, res) => {
       rating,
       category,
       thumbnail,
-    });
+      images,
+    };
 
-    const thumbnailImage = await product.uploadImages(thumbnail);
-    product.thumbnail = thumbnailImage[0];
+    const product = await ProductRepository.createProduct(productData);
 
-    const uploadedImages = await product.uploadImages(images);
-    product.images = uploadedImages;
-
-    await product.save();
-
-    res.status(201).json({
+    res.status(200).json({
       message: 'Product added successfully',
       product: { ...product.toJSON(), category: categoryObj.name },
     });
   } catch (error) {
+    console.log('error', error);
+    let errMsg = 'Error ehile adding the product';
     if (error && error?.code === 11000) {
-      return res.status(400).send({
-        message: 'Product already exists with given title.',
-      });
-    } else {
-      console.error('Error adding product:', error);
-      res.status(400).json({ error: error?.message || 'Bad Request' });
+      errMsg = 'Product already exists with given title.';
     }
+    next(errMsg);
   }
 };
 
@@ -149,23 +128,23 @@ const addProduct = async (req, res) => {
  * Edits an existing product.
  * @returns {Object} Response with success message and updated product details.
  */
-const editProduct = async (req, res) => {
+const editProduct = async (req, res, next) => {
   try {
     const productId = req.params.id;
     const { title, description, price, stock, discountPercentage, rating, category } = req.body;
 
     if (!title || !description || !price || !stock || !category) {
-      throw new Error('Missing required fields.');
+      next('Missing required fields.');
     }
 
-    const product = await Product.findById(productId);
+    const product = await ProductRepository.findProductById(productId);
     if (!product) {
-      throw new Error('Product not found');
+      next('Product not found');
     }
 
-    const categoryObj = await Category.findById(category);
+    const categoryObj = await CategoryRepository.findCategoryById(category);
     if (!categoryObj) {
-      throw new Error('Category not found');
+      next('Category not found');
     }
 
     const thumbnail = req.files['thumbnail'];
@@ -181,23 +160,24 @@ const editProduct = async (req, res) => {
       product.images = uploadedImages;
     }
 
-    product.title = title;
-    product.description = description;
-    product.price = price;
-    product.stock = stock;
-    product.discountPercentage = discountPercentage;
-    product.rating = rating;
-    product.category = category;
+    const updateData = {
+      title,
+      description,
+      price,
+      stock,
+      discountPercentage,
+      rating,
+      category,
+    };
 
-    await product.save();
+    const updatedProduct = await ProductRepository.updateProduct(productId, updateData);
 
-    res.json({
+    res.status(200).json({
       message: 'Product updated successfully',
-      product: { ...product.toJSON(), category: categoryObj.name },
+      product: { ...updatedProduct.toJSON(), category: categoryObj.name },
     });
   } catch (error) {
-    console.error('Error editing product:', error);
-    res.status(400).json({ error: error?.message || 'Bad Request' });
+    next('Error while updating the product.');
   }
 };
 
@@ -205,19 +185,18 @@ const editProduct = async (req, res) => {
  * Deletes a product by its ID.
  * @returns {Object} Response with success message or error message if product not found.
  */
-const deleteProduct = async (req, res) => {
+const deleteProduct = async (req, res, next) => {
   try {
     const productId = req.params.id;
-    const product = await Product.findByIdAndDelete(productId);
+    const product = await ProductRepository.deleteProductById(productId);
 
     if (!product) {
-      res.status(404).json({ error: 'Product not found' });
+      next('Product not found');
     } else {
-      res.json({ message: 'Product deleted successfully' });
+      res.status(200).json({ message: 'Product deleted successfully' });
     }
   } catch (error) {
-    console.error('Error deleting product:', error);
-    res.status(400).json({ error: error?.message || 'Internal Server Error' });
+    next('Error while deleting the product.');
   }
 };
 

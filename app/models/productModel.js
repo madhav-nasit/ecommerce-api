@@ -67,7 +67,6 @@ ProductSchema.methods.uploadImages = async function (images) {
     }
     return uploadedImages;
   } catch (error) {
-    console.error(error);
     throw new Error('Failed to upload images to ImageKit');
   }
 };
