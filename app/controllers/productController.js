@@ -115,7 +115,6 @@ const addProduct = async (req, res, next) => {
       product: { ...product.toJSON(), category: categoryObj.name },
     });
   } catch (error) {
-    console.log('error', error);
     let errMsg = 'Error ehile adding the product';
     if (error && error?.code === 11000) {
       errMsg = 'Product already exists with given title.';

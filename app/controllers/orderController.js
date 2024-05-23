@@ -4,6 +4,7 @@
 const mongoose = require('mongoose');
 const Order = require('../models/orderModel');
 const Cart = require('../models/cartModel');
+const Product = require('../models/productModel');
 
 /**
  * Controller function to get user's orders.
@@ -27,7 +28,6 @@ const getOrder = async (req, res) => {
     res.json(order);
   } catch (err) {
     // Handle errors
-    console.error('Error occurred while getting order', err);
     res.status(400).send({
       message: err?.message || 'Error occurred while getting order.',
     });
@@ -67,6 +67,16 @@ const placeOrder = async (req, res) => {
     // Save the order
     await order.save();
 
+    // Update the stock of each product in the order
+    await Promise.all(
+      order.products.map(async (item) => {
+        const product = item.product;
+        const updatedStock = product.stock - item.quantity;
+        // Update the stock property of the product
+        await Product.findByIdAndUpdate(product._id, { stock: updatedStock });
+      }),
+    );
+
     // Clear cart
     cart.products = [];
     // Save the cart
@@ -76,7 +86,6 @@ const placeOrder = async (req, res) => {
     res.json(order.formatOrder());
   } catch (err) {
     // Handle errors
-    console.error('Error occurred while placing order', err);
     res.status(400).send({
       message: err?.message || 'Error occurred while placing order.',
     });
@@ -116,7 +125,6 @@ const updateOrderStatus = async (req, res) => {
     res.json(order.formatOrder());
   } catch (err) {
     // Handle errors
-    console.error('Error occurred while updating order status', err);
     res.status(400).send({
       message: err?.message || 'Error occurred while updating order status.',
     });
@@ -288,7 +296,6 @@ const getProductsBoughtTogether = async (req, res) => {
 
     res.json(boughtTogether);
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: err.message });
   }
 };

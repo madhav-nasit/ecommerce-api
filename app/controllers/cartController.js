@@ -1,6 +1,6 @@
 'use strict';
 
-const cartRepository = require('../repository/cartRepository');
+const cartRepository = require('../repositories/cartRepository');
 
 const getCart = async (req, res, next) => {
   try {
