@@ -7,6 +7,7 @@ const corsMiddleware = require('./app/middlewares/corsMiddleware');
 const bodyParserMiddleware = require('./app/middlewares/bodyParserMiddleware');
 const errorHandlerMiddleware = require('./app/middlewares/errorHandlerMiddleware');
 const routesMiddleware = require('./app/middlewares/routesMiddleware');
+const notFoundMiddleware = require('./app/middlewares/notFoundMiddleware');
 const connectDB = require('./app/middlewares/database');
 const initializeSocket = require('./app/middlewares/socket');
 
@@ -26,9 +27,7 @@ app.use(bodyParserMiddleware);
 app.use(routesMiddleware);
 
 // 404 Error handling
-app.use((req, res) => {
-  res.status(404).send({ error: 'Resource not found' });
-});
+app.use(notFoundMiddleware);
 
 // Error handling middleware
 app.use(errorHandlerMiddleware);
