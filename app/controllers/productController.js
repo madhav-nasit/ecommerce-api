@@ -38,7 +38,7 @@ const getProducts = async (req, res, next) => {
       category: product?.category.name,
     }));
 
-    res.status(200).json({
+    res.json({
       products: formattedProducts,
       count: totalItems,
       page: currentPage,
@@ -71,7 +71,7 @@ const getProductById = async (req, res, next) => {
     };
 
     // Return the product
-    res.status(200).json(formattedProduct);
+    res.json(formattedProduct);
   } catch (error) {
     next('Error while getting product details.');
   }
@@ -110,7 +110,7 @@ const addProduct = async (req, res, next) => {
 
     const product = await ProductRepository.createProduct(productData);
 
-    res.status(200).json({
+    res.json({
       message: 'Product added successfully',
       product: { ...product.toJSON(), category: categoryObj.name },
     });
@@ -171,7 +171,7 @@ const editProduct = async (req, res, next) => {
 
     const updatedProduct = await ProductRepository.updateProduct(productId, updateData);
 
-    res.status(200).json({
+    res.json({
       message: 'Product updated successfully',
       product: { ...updatedProduct.toJSON(), category: categoryObj.name },
     });
@@ -192,7 +192,7 @@ const deleteProduct = async (req, res, next) => {
     if (!product) {
       next('Product not found');
     } else {
-      res.status(200).json({ message: 'Product deleted successfully' });
+      res.json({ message: 'Product deleted successfully' });
     }
   } catch (error) {
     next('Error while deleting the product.');

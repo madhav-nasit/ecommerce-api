@@ -17,7 +17,7 @@ const signUp = async (req, res, next) => {
     const userData = { ...req.body, password: bcrypt.hashSync(req.body.password, 10) };
     const user = await UserRepository.createUser(userData);
     user.password = undefined;
-    res.status(200).json(user);
+    res.json(user);
   } catch (err) {
     if (err && err.code === 11000) {
       next('User already exists with given email.');
@@ -42,7 +42,7 @@ const signIn = async (req, res, next) => {
         secret,
         { expiresIn: '1h' },
       );
-      res.status(200).json({
+      res.json({
         ...user.toObject(),
         token: token,
       });

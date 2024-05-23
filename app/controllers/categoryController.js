@@ -11,7 +11,7 @@ const categoryRepository = require('../repositories/categoryRepository');
 const categories = async (req, res, next) => {
   try {
     const categories = await categoryRepository.getAllCategories();
-    return res.status(200).json(categories);
+    return res.json(categories);
   } catch (err) {
     next(`Error while fetching categories: ${err.message}`);
   }
@@ -23,7 +23,7 @@ const categories = async (req, res, next) => {
 const addCategory = async (req, res, next) => {
   try {
     const category = await categoryRepository.createCategory(req.body);
-    return res.status(200).send(category);
+    return res.send(category);
   } catch (err) {
     next(`Error while adding category: ${err.message}`);
   }
@@ -39,7 +39,7 @@ const deleteCategoryById = async (req, res, next) => {
     if (!category) {
       next('Category not found');
     }
-    return res.status(200).json({ message: 'Category deleted successfully' });
+    return res.json({ message: 'Category deleted successfully' });
   } catch (error) {
     next(`Error while deleting category: ${error.message}`);
   }

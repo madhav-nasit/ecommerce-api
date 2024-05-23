@@ -17,7 +17,7 @@ const addToCart = async (req, res, next) => {
     const currentUserID = req.user._id;
     const { productId, quantity } = req.body;
     const result = await cartRepository.addProductToCart(currentUserID, productId, quantity);
-    res.status(200).json(result);
+    res.json(result);
   } catch (error) {
     next(error.message ?? 'Error occurred while adding product to cart.');
   }
@@ -28,7 +28,7 @@ const deleteCart = async (req, res, next) => {
     const currentUserID = req.user._id;
     const { productId, cartId } = req.query;
     const result = await cartRepository.removeFromCart(currentUserID, productId, cartId);
-    res.status(200).json(result);
+    res.json(result);
   } catch (error) {
     next('Error occurred while removing product from cart.');
   }
