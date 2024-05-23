@@ -28,18 +28,6 @@ router.delete('/categories/:id', categoryController.deleteCategoryById);
 // Get products with optional filtering and pagination
 router.get('/', productController.getProducts);
 
-// Get product details by id
-router.get('/:id', productController.getProductById);
-
-// Add a new product
-router.post('/', productUpload, productController.addProduct);
-
-// Edit an existing product
-router.patch('/:id', productUpload, productController.editProduct);
-
-// Delete a product by ID
-router.delete('/:id', productController.deleteProduct);
-
 /**
  * @route GET /api/bestseller
  * @desc Get the top 10 bestseller products based on the quantity sold
@@ -52,5 +40,17 @@ router.get('/bestseller', orderController.getBestsellerProducts);
  * @param {string} productId - ID of the product to find products bought together
  */
 router.get('/bought-together/:productId', orderController.getProductsBoughtTogether);
+
+// Get product details by id
+router.get('/:id', productController.getProductById);
+
+// Add a new product
+router.post('/', productUpload, productController.addProduct);
+
+// Edit an existing product
+router.patch('/:id', productUpload, productController.editProduct);
+
+// Delete a product by ID
+router.delete('/:id', productController.deleteProduct);
 
 module.exports = router;

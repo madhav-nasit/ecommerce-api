@@ -71,6 +71,16 @@ const deleteProductById = async (productId) => {
   return await Product.findByIdAndDelete(productId);
 };
 
+/**
+ * Updates the stock of a product by product ID.
+ * @param {String} productId - The product ID.
+ * @param {Number} stock - The new stock value.
+ * @returns {Promise<Object|null>} - A promise that resolves to the updated product object or null if not found.
+ */
+const updateProductStock = async (productId, stock) => {
+  return await Product.findByIdAndUpdate(productId, { stock });
+};
+
 module.exports = {
   countProducts,
   findProducts,
@@ -78,4 +88,5 @@ module.exports = {
   createProduct,
   updateProduct,
   deleteProductById,
+  updateProductStock,
 };
