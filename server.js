@@ -33,7 +33,7 @@ app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);
 
 // Start the server
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
 const server = app.listen(PORT, () => {
   // Server is running on port
 });
