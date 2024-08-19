@@ -8,6 +8,22 @@ const mongoose = require('mongoose');
 const ImageKit = require('imagekit');
 const Schema = mongoose.Schema;
 
+// Define the dimensions subdocument schema
+const dimensionsSchema = new mongoose.Schema({
+  width: Number,
+  height: Number,
+  depth: Number,
+});
+
+// Define the review subdocument schema
+const reviewSchema = new mongoose.Schema({
+  rating: { type: Number, required: true },
+  comment: String,
+  date: { type: Date, default: Date.now },
+  reviewerName: String,
+  reviewerEmail: String,
+});
+
 /**
  * Define the Product schema.
  */
@@ -28,9 +44,23 @@ const ProductSchema = Schema({
   },
   discountPercentage: Number,
   rating: Number,
-  category: {
-    type: Schema.Types.ObjectId,
-    ref: 'Category',
+  tags: [String],
+  brand: String,
+  sku: String,
+  weight: String,
+  category: String,
+  dimensions: dimensionsSchema,
+  warrantyInformation: String,
+  shippingInformation: String,
+  availabilityStatus: String,
+  reviews: [reviewSchema],
+  returnPolicy: String,
+  minimumOrderQuantity: Number,
+  meta: {
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now },
+    barcode: String,
+    qrCode: String,
   },
   thumbnail: {
     type: String,

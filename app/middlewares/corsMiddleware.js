@@ -2,7 +2,7 @@ const cors = require('cors');
 
 const corsMiddleware = cors({
   origin: '*', // Allow all origins, you can restrict it to specific origins if needed
-  methods: ['GET', 'POST'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
   // allowedHeaders: ['my-custom-header'],
   credentials: true,
 });

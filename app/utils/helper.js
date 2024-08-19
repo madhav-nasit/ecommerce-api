@@ -10,7 +10,7 @@
  * @param {Object} populate - Optional populate object for Mongoose.
  * @returns {Object} The paginated results.
  */
-const paginate = async (model, query, page, limit, populate = null) => {
+const paginate = async (model, query, page, limit) => {
   const totalItems = await model.countDocuments(query);
   let currentPage = 1;
   let totalPages = 1;
@@ -26,9 +26,9 @@ const paginate = async (model, query, page, limit, populate = null) => {
   }
 
   let queryBuilder = model.find(query);
-  if (populate) {
-    queryBuilder = queryBuilder.populate(populate);
-  }
+  // if (populate) {
+  //   queryBuilder = queryBuilder.populate(populate);
+  // }
   queryBuilder = queryBuilder.skip(skip).limit(parseInt(limit));
 
   const items = await queryBuilder.exec();

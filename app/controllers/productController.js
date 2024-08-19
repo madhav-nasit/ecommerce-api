@@ -21,7 +21,7 @@ const getProducts = async (req, res, next) => {
       if (!categoryObj) {
         next('No category found.');
       }
-      query.category = categoryObj._id;
+      query.category = category;
     }
 
     // Paginate the products
@@ -30,21 +30,16 @@ const getProducts = async (req, res, next) => {
       totalItems,
       currentPage,
       totalPages,
-    } = await paginate(Product, query, page, limit, 'category');
-
-    // Format category as "category": "smartphones"
-    const formattedProducts = products.map((product) => ({
-      ...product.toJSON(),
-      category: product?.category.name,
-    }));
+    } = await paginate(Product, query, page, limit);
 
     res.json({
-      products: formattedProducts,
+      products: products,
       count: totalItems,
       page: currentPage,
       total: totalPages,
     });
   } catch (error) {
+    console.log('error', error);
     next('Error while getting products.');
   }
 };
@@ -64,14 +59,8 @@ const getProductById = async (req, res, next) => {
       next('Product not found.');
     }
 
-    // Format the product response to include category name
-    const formattedProduct = {
-      ...product.toJSON(),
-      category: product?.category.name,
-    };
-
     // Return the product
-    res.json(formattedProduct);
+    res.json(product);
   } catch (error) {
     next('Error while getting product details.');
   }
@@ -91,7 +80,7 @@ const addProduct = async (req, res, next) => {
       next('Missing required fields.');
     }
 
-    const categoryObj = await CategoryRepository.findCategoryById(category);
+    const categoryObj = await CategoryRepository.findCategoryByName(category);
     if (!categoryObj) {
       next('Category not found');
     }
@@ -112,9 +101,10 @@ const addProduct = async (req, res, next) => {
 
     res.json({
       message: 'Product added successfully',
-      product: { ...product.toJSON(), category: categoryObj.name },
+      product: product.toJSON(),
     });
   } catch (error) {
+    console.log('error', error);
     let errMsg = 'Error ehile adding the product';
     if (error && error?.code === 11000) {
       errMsg = 'Product already exists with given title.';
@@ -141,7 +131,7 @@ const editProduct = async (req, res, next) => {
       next('Product not found');
     }
 
-    const categoryObj = await CategoryRepository.findCategoryById(category);
+    const categoryObj = await CategoryRepository.findCategoryByName(category);
     if (!categoryObj) {
       next('Category not found');
     }
@@ -173,7 +163,7 @@ const editProduct = async (req, res, next) => {
 
     res.json({
       message: 'Product updated successfully',
-      product: { ...updatedProduct.toJSON(), category: categoryObj.name },
+      product: updatedProduct.toJSON(),
     });
   } catch (error) {
     next('Error while updating the product.');

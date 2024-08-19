@@ -13,10 +13,6 @@ const getUserCart = async (userId) => {
     let cart = await Cart.findOne({ userId }).populate({
       path: 'products.product',
       select: 'title price stock discountPercentage rating thumbnail category',
-      populate: {
-        path: 'category',
-        select: 'name',
-      },
     });
 
     // If the user doesn't have a cart, create a new one
@@ -40,9 +36,9 @@ const getUserCart = async (userId) => {
  */
 const addProductToCart = async (userId, productId, quantity = 1) => {
   try {
-    const product = await Product.findById(productId)
-      .select('title price stock discountPercentage rating thumbnail category')
-      .populate('category');
+    const product = await Product.findById(productId).select(
+      'title price stock discountPercentage rating thumbnail category',
+    );
 
     if (!product) {
       throw new Error('Product not found');
@@ -54,11 +50,7 @@ const addProductToCart = async (userId, productId, quantity = 1) => {
 
     let cart = await Cart.findOne({ userId }).populate({
       path: 'products.product',
-      select: 'title price stock discountPercentage rating thumbnail',
-      populate: {
-        path: 'category',
-        select: 'name',
-      },
+      select: 'title price stock discountPercentage rating thumbnail category',
     });
 
     if (!cart) {
@@ -92,13 +84,10 @@ const addProductToCart = async (userId, productId, quantity = 1) => {
  */
 const removeFromCart = async (userId, productId, cartId) => {
   try {
+    console.log('userId', userId);
     let cart = await Cart.findOne({ userId }).populate({
       path: 'products.product',
-      select: 'title price stock discountPercentage rating thumbnail',
-      populate: {
-        path: 'category',
-        select: 'name',
-      },
+      select: 'title price stock discountPercentage rating thumbnail category',
     });
 
     if (!cart) {
@@ -124,6 +113,7 @@ const removeFromCart = async (userId, productId, cartId) => {
       cart: cart.formatCart(),
     };
   } catch (error) {
+    console.log('error', error);
     throw new Error(`Error occurred while removing product from cart: ${error.message}`);
   }
 };

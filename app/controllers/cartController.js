@@ -24,6 +24,7 @@ const addToCart = async (req, res, next) => {
 };
 
 const deleteCart = async (req, res, next) => {
+  console.log('deleteCart');
   try {
     const currentUserID = req.user._id;
     const { productId, cartId } = req.query;
